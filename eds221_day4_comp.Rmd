@@ -1,0 +1,335 @@
+---
+title: "eds221_day4_comp"
+author: "Julia Parish"
+date: "8/12/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(palmerpenguins)
+
+```
+
+# You run 2 miles and these are your quarter mile splits (in minutes). Write a for loop that returns your total time for any consecutive quarter miles. (Hint: the first is 1.0 + 1.1, the second is 1.1 + 1.2, etc)
+```{r}
+quarter_splits <- c(1.0, 1.1, 1.2, 1.1, 1.4, 1.5, 1.6, 1.4)
+time_quarters <- vector(mode = "numeric", length = length(quarter_splits) - 1)
+
+for (i in seq_along(quarter_splits) - 1) {
+  half_mile <- quarter_splits[i] + quarter_splits[i + 1]
+  time_quarters[i] <- half_mile
+}
+
+# have -1 for any consecutive qtr mile, start with 1st one then add the value of the 2nd, but once you get to the end (8th position), this function w/o would ask to add the 8th with a non existant 9th, so starting w/ no element for the first one so you don't end up with an NA. 
+# with double brackets - returning the most simple form. When you have a vector it is always the simplest form.
+
+for (i in 1:(length(quarter_splits) - 1)) {
+  half_mile <- quarter_splits[i] + quarter_splits[i + 1]
+  quarter_splits[i] <- half_mile
+  
+time_quarters
+
+```
+
+## Basic Function Structure Practice
+
+```{r message=FALSE}
+# 
+
+birddog_sum <- function(bird, dog) {
+  if(bird > 50) {
+    stop("Birds can't be greater than 50")
+  }
+  
+  if(bird < 10)
+    message("Cool little bird!")
+  
+  if(dog < 0){
+    warning("Can a dog be less than 0 pounds?")
+  }
+  
+  add_birddog <- bird + dog
+  return(add_birddog)
+}
+
+
+bird100_dog5 <- birddog_sum(bird = 100, dog = 5)
+
+bird100_dog5
+
+
+birddog_sum(bird = 6, dog = 5)
+birddog_sum(bird = 6, dog = -1)
+
+```
+
+```{r}
+say_hello <- function(friend, weekday) {
+  print(paste("Hello,", friend, "have a great", weekday))
+}
+
+say_hello(friend = "Teddy", weekday = "Thursday")
+
+```
+# Print vs return example
+
+```{r}
+find_multiple <- function(a, b) {
+  my_multiplication <- a * b
+  print(my_multiplication)
+}
+
+find_multiple(a = 10, b = 6)
+
+find_multiple(a = 10, b= 6) + 12
+```
+
+
+```{r}
+find_multiple <- function(c, d) {
+  my_multiplication <- a * b
+  print(my_multiplication)
+}
+
+# this changes console to plus signs
+```
+
+## Functions with conditions
+
+```{r}
+animal_age <- function(animal, age) {
+  
+  if (!animal %in% c("dog", "goat")) {
+    stop("Animal must be a dog or a goat.")
+  }
+  
+  if (animal == "dog") {
+    creature_age <- age * 7
+  }
+  
+  if(animal == "goat") {
+    creature_age <- age * 4.7
+  }
+  
+  return(creature_age)
+}
+
+animal_age(animal = "goat", age = 13)
+# animal_age(animal = "zebra", age = 13) # breaks
+# animal_age(animal = "dog", age = "ten") # breaks
+# animal_age(animal = "urchin", age = 20)
+# animal_age(animal = "urchin", age = 20)
+
+
+```
+### Filter Penguins Data
+# keep obs if they are adelie or gentoo
+
+```{r}
+# asking is every row in specices column match 'adelie' or 'gentoo'. the in operator looks for anything matching
+
+adelie_gentoo <- penguins %>% 
+  filter(species %in% c("Adelie", "Gentoo"))
+
+```
+
+
+```{r}
+# use match (==) is incorrect, as this is looking by row that has the order Adelie then Gentoo - so first row looks to see if it is Adelie, then if second row is Gentoo, does the 3rd row match Adelie, on and on...
+
+adelie_gentoo_wrong <- penguins %>% 
+  filter(species == c("Adelie", "Gentoo"))
+
+# could use the OR function
+
+adelie_gentoo_wrong <- penguins %>% 
+  filter(species == c("Adelie" | species == "Gentoo"))
+
+# or exclude the Chinstrip species vs looking for two species
+```
+
+## Functions with For Loops - if you didn't know that apply or purrrr existed, for any column in the data frame you want to return the mean statement ...
+
+# Combine functions and for loops
+- could do seq.along
+
+
+```{r}
+df_means <- function(df) {
+  for (i in 1:ncol(df)) {
+    col_mean <- mean(df[[i]])
+    print(col_mean)
+  }
+}
+
+# in the console mean(mtcars[[4]])
+# to test function
+df_means(df = mtcars)
+
+# can call names of some dataframe df[i] will return that column name as string
+# update this function so that for each iteration "the mean value of 'column name' is 'mean'
+# double brackets pulls the actual value, single brackets will pull a dataframe
+
+df_means <- function(df) {
+  for (i in 1:ncol(df)) {
+    col_mean <- mean(df[[i]], na.rm(TRUE))
+    column_name <- colnames(df[i])
+    print(paste("The mean of", column_name, "is", col_mean))
+  }
+}
+
+df_means(df = mtcars)
+```
+
+```{r}
+# Make a subset of only structural size variables from the penhuins dataset for Chinstrap (bill_length, body size)
+# every single part of a pipe sequence - LOOK at it
+# select is the diplyr function to look at select columns
+
+chinstrap_sizes <- penguins %>% 
+  filter(species == "Chinstrap") %>% 
+  select(bill_length_mm, bill_depth_mm, flipper_length_mm, body_mass_g)
+
+df_means(df = chinstrap_sizes)
+
+# if you have NAs in data, but sill want to calculate mean, then na.rm = TRUE in the FUNCTION
+
+```
+## Condition to check class of an input 
+# if price of tacos not numeric - stop code
+ - is.numeric(5) = TRUE or is.numeric("apples") = FALSE  
+ - is.numeric(tacos) == FALSE) reads "is FALSE = to FALSE"?
+ - can also write "if (!is.numeric(tacos) == TRUE)"
+ 
+```{r}
+lunchtime <- function(tacos, price_per) {
+  if (is.numeric(tacos) == FALSE) {
+    stop("You must input a number of tacos.")
+  }
+  tot_price <- tacos * price_per
+  return(tot_price)
+}
+
+lunchtime(tacos = "bananas", price_per = 2.50)
+
+```
+
+## Examples: use values from a data frame to calculate something based on user input
+
+```{r}
+# Calculate the groundwater transport rate
+# filter is the function to select rows, only one argument (site) gw_rate <- function(site) {
+# use $ to refer to any column
+
+gw_rate <- function(site) {
+  gw_slope_depths <- data.frame(sitename = c("mountain", "prairie", "desert", "beach"),
+                                depth = c(32, 41, 63, 2),
+                                slope = c(11.2, 0.4, 0.8, 2.6))
+  site_select <- dplyr::filter(gw_slope_depths, sitename == site)
+  
+  transport_rate <- 1.4 * site_select$slope + 3.6 * site_select$depth
+  
+  return(transport_rate)
+  
+}
+ 
+# could also write site_select <- dplyr::filter(gw_slope_depth, sitename == "site") AS gw_slope_depths %>% filter(sitename == site)
+
+gw_rate(site = "prairie")
+
+
+```
+
+# Switch - ask switch if the input is this, then here are my parameters, if the input is this then here are the parameters, create a vector with swtich statement. In transport_rate, access vectors created
+
+```{r}
+gw_rate_switch <- function(site) {
+  
+  gw_slope_depth <- switch(site, "mountain" = c(32, 11.2),
+                           "praire" = c(41, 0.4),
+                           "desert" = c(63, 0.8),
+                           "beach" = c(2, 2.6))
+  
+  transport_rate <- 1.4 * gw_slope_depth[2] + 3.6 * gw_slope_depth[1]
+  
+  return(transport_rate)
+}
+
+gw_rate_switch(site = "beach")
+
+```
+### Logisitic growth - shortcut 'ctrl + alt + x'
+## *could write this as a for loop*
+# Create a data frame from two vectors, then plot
+
+```{r}
+logistic_growth <- function(K, N0, r, time) {
+   Nt <- K / (1 + ((K - N0) / N0) * exp(-r * time))
+  print(Nt)
+  }
+
+logistic_growth(K = 5000, N0 = 200, r = 0.43, time = 6)
+
+time_vec <- seq(from = 0, to = 35, by = 0.1)
+
+bacterial_growth <- logistic_growth(K = 5000, N0 = 200, r = 0.43, time = time_vec)
+
+bacterial_df <- data.frame(time_vec, bacterial_growth)
+
+ggplot(data = bacterial_df, aes(x = time_vec, y = bacterial_growth)) + 
+  geom_point()
+
+```
+## Instead of having a single growth rate value, create new sequence with a growth value range
+```{r}
+r_seq <- seq(from = 0.20, to = 0.40, by = 0.01)
+time_vec <- seq(from = 0, to = 35, by = 0.1) 
+
+# *time_vec from above, from all growth rates, I want to estimate population at all times. create rate columns and time rows. create an empty data frame to populate, state that elements in rate seq are i's and time elements are j's, then populate [j,i] results: r1, t1; r1, t2; r1, t3 - inner loop is set up as time rows. Decided to have rates in columns, times in rows & b/c of that the inner loop is reiterating over j. The out matrix [j,i] will iterate thru all rows using the 1st column before moving on to column 2
+
+out_matrix <- matrix(ncol = length(r_seq), nrow = length(time_vec))
+
+# N0 = 100, K = 6000
+
+for (i in seq_along(r_seq)) {
+  for (j in seq_along(time_vec)) {
+    pop <- logistic_growth(K = 6000, N0 = 100, r = r_seq[i], time = time_vec[j])
+    out_matrix[j, i] <- pop
+  }
+}
+
+out_matrix
+
+# I want to attach time_vec to columns, then give them useful names, make it a long form of this data frame - one column for time, one column for growth rates, and one column for 
+
+
+out_df <- data.frame(time = time_vec, out_matrix)
+
+# add more useful column names
+
+colnames(out_df) <- c("time", paste0("gr_", r_seq))
+
+# current data frame doesn't allow for aes grouping to plot, so use pivot.longer - which takes a wide data frame, and compresses them to a longer data frame
+# make a long form (or tidy version) of this data
+# - time excludes the times column
+# similar to 'gather' in base R
+
+out_df_long <- out_df %>% 
+  pivot_longer(-time, names_to = "growth_rate", values_to = "population")
+
+# Make in ggplot a LINE GRAPH (geom_line()) for population (y-axis) over time(x-axis) with color depending on growth rate
+
+ggplot(data = out_df_long, aes(x = time, y = population)) +
+  geom_line(aes(color = growth_rate))
+
+# first (or lower) coral line is 1st growth rate calculating over time, and so on... 
+
+```
+
+
+
+
+
